@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>教师端学情控制台 - AI智能微课平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- 更换为更稳定的 cdnjs 图表库源 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; color: #ccc; }
+        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #2a2d3e; }
+        .data-table th { color: #7c83f5; font-weight: bold; background: #12141f; }
+        .data-table tr:hover { background: #1a1d2e; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="nav">
+            <div class="logo"><i class="fas fa-chalkboard-teacher"></i><span>教师端学情控制台</span></div>
+            <div class="nav-links">
+                <a href="AI智能微课教学平台.html"><i class="fas fa-desktop"></i> 返回学生端</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 顶部统计卡片 -->
+<div class="container" style="margin-top:20px;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px;">
+        <div class="card" style="text-align:center;padding:15px;">
+            <div style="font-size:28px;font-weight:bold;color:#2ecc71;" id="totalStudents">-</div>
+            <div style="font-size:12px;color:#888;">活跃学生数</div>
+        </div>
+        <div class="card" style="text-align:center;padding:15px;">
+            <div style="font-size:28px;font-weight:bold;color:#f39c12;" id="avgWatch">-</div>
+            <div style="font-size:12px;color:#888;">平均学习时长(分)</div>
+        </div>
+        <div class="card" style="text-align:center;padding:15px;">
+            <div style="font-size:28px;font-weight:bold;color:#7c83f5;" id="totalQuizzes">-</div>
+            <div style="font-size:12px;color:#888;">总测验次数</div>
+        </div>
+        <div class="card" style="text-align:center;padding:15px;">
+            <div style="font-size:28px;font-weight:bold;color:#e74c3c;" id="accuracyRate">-</div>
+            <div style="font-size:12px;color:#888;">测验正确率</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- 左侧：班级画像分布饼图 -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> 班级画像分布监控</div>
+            <div style="height: 300px; position: relative;">
+                <canvas id="profilePieChart"></canvas>
+            </div>
+            <p style="font-size: 12px; color: #888; margin-top: 15px; text-align: center;">
+                基于 K-means 实时聚类产生的全局分布数据
+            </p>
+        </div>
+
+        <!-- 右侧：实时学习动态 -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-list-alt"></i> 实时学习动态追踪</div>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>学生ID</th>
+                            <th>观看时长(分)</th>
+                            <th>提问数</th>
+                            <th>进度</th>
+                            <th>当前判定画像</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTbody">
+                        <tr><td colspan="6" style="text-align:center;">加载数据中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const BACKEND_URL = 'http://localhost:3000';
+
+async function loadStats() {
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/teacher/stats`);
+        const result = await res.json();
+        if (result.code === 0) {
+            const { quiz, learning } = result.data;
+            document.getElementById('totalStudents').textContent = learning?.student_count ?? 0;
+            document.getElementById('avgWatch').textContent = learning?.avg_watch ?? 0;
+            document.getElementById('totalQuizzes').textContent = quiz?.total ?? 0;
+            document.getElementById('accuracyRate').textContent = (quiz?.accuracy ?? 0) + '%';
+        }
+    } catch (e) {
+        console.error('load stats error:', e);
+    }
+}
+
+async function loadDashboard() {
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/teacher/dashboard`);
+        const result = await res.json();
+
+        if (result.code === 0) {
+            renderPieChart(result.data.profileDist);
+            renderLogsTable(result.data.recentLogs);
+        } else {
+            // 如果后端报错，把具体原因打印出来
+            document.getElementById('logsTbody').innerHTML = `<tr><td colspan="6" style="color:#e74c3c;text-align:center;">数据库查询失败：${result.error || result.message}</td></tr>`;
+        }
+    } catch (e) {
+        // 如果是代码报错，也打印出来
+        console.error('加载控制台数据失败:', e);
+        document.getElementById('logsTbody').innerHTML = `<tr><td colspan="6" style="color:#e74c3c;text-align:center;">前端执行报错：${e.message}</td></tr>`;
+    }
+}
+
+function renderPieChart(distData) {
+    const ctx = document.getElementById('profilePieChart').getContext('2d');
+
+    if (!distData || distData.length === 0) {
+        distData = [
+            { profile_name: '暂无数据', count: 1 }
+        ];
+    }
+
+    const labels = distData.map(d => d.profile_name);
+    const data = distData.map(d => d.count);
+
+    const colorMap = {
+        '新晋体验者': '#95a5a6',
+        '基础薄弱型': '#e74c3c',
+        '稳步提升型': '#f39c12',
+        '强化钻研型': '#2ecc71',
+        '碎片跳学型': '#9b59b6',
+        '暂无数据': '#2a2d3e'
+    };
+    const backgroundColors = labels.map(label => colorMap[label] || '#3498db');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderWidth: 1,
+                borderColor: '#12141f'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#ccc' } }
+            }
+        }
+    });
+}
+
+function renderLogsTable(logs) {
+    const tbody = document.getElementById('logsTbody');
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">暂无学习动态</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = logs.map(log => {
+        const timeStr = new Date(log.created_at).toLocaleString('zh-CN', { hour12: false });
+        return `
+            <tr>
+                <td style="color:#888">${timeStr}</td>
+                <td>Student_${log.user_id}</td>
+                <td style="color:#2ecc71">${log.watch_time}</td>
+                <td style="color:#f39c12">${log.ask_count}</td>
+                <td>${log.progress}%</td>
+                <td><span class="badge" style="background:rgba(124,131,245,0.2);color:#7c83f5;">${log.profile_name}</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+window.addEventListener('load', () => {
+    loadDashboard();
+    loadStats();
+});
+</script>
+
+</body>
+</html>

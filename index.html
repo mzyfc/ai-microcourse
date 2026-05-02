@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>AI智能微课教学平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="nav">
+            <div class="logo"><i class="fas fa-brain"></i><span>AI 智能微课平台</span></div>
+            <div class="nav-links">
+                <a href="#"><i class="fas fa-home"></i> 首页</a>
+                <a href="#"><i class="fas fa-book"></i> 课程</a>
+                <a href="#"><i class="fas fa-chart-bar"></i> 报告</a>
+                <a href="#"><i class="fas fa-user"></i> 我的</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="main-layout">
+
+        <!-- 左侧 -->
+        <div>
+            <!-- 视频 -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-play-circle"></i> 机器学习基础 · 第1课：定义与三大范式</div>
+                <div class="video-wrapper">
+                    <video id="myVideo" controls src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+                    <div class="video-overlay-badge"><div class="live-dot"></div> 行为监测中</div>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-label">
+                        <span>学习进度（基于有效观看时长）</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                </div>
+            </div>
+
+            <!-- K-means 可视化 -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-project-diagram"></i> K-means 实时聚类可视化 · 学习画像引擎</div>
+                <div class="kmeans-split">
+                    <div>
+                        <div class="kmeans-viz-wrapper">
+                            <div class="kmeans-viz-title">三维特征空间 · 二维投影坐标系</div>
+                            <canvas id="kmeansCanvas" width="280" height="220"></canvas>
+                        </div>
+                        <div class="formula-box">
+                            d = √(Σ ωᵢ·(aᵢ-bᵢ)²)　特征=[投入度,压力,连续性]
+                        </div>
+                        <div style="font-size:12px;color:#555;margin:10px 0 6px;">
+                            <i class="fas fa-calculator"></i> 加权欧几里得距离实时计算
+                        </div>
+                        <table class="distance-table">
+                            <thead><tr><th>质心</th><th>距离 d</th><th>接近度</th></tr></thead>
+                            <tbody id="distanceTbody"></tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <div style="font-size:12px;color:#555;margin-bottom:8px;">
+                            <i class="fas fa-id-card"></i> 当前学习画像
+                        </div>
+                        <div class="profile-card" id="profileCard">
+                            <div class="profile-name" id="profileName">等待数据...</div>
+                            <div class="profile-score-row">
+                                <div class="profile-score" id="profileScore">—</div>
+                                <div class="profile-score-unit">综合能力分</div>
+                            </div>
+                            <div class="profile-tags" id="profileTags"></div>
+                            <div class="profile-suggestion" id="profileSuggestion">运行模型后显示个性化建议</div>
+                        </div>
+                        <div style="margin-top:14px;">
+                            <div style="font-size:12px;color:#555;margin-bottom:8px;">
+                                <i class="fas fa-chart-area"></i> 能力维度雷达图
+                            </div>
+                            <canvas id="radarCanvas" width="220" height="200" style="display:block;margin:0 auto;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 画像变化时间线 -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-route"></i> 画像变化轨迹</div>
+                <div id="profileTimeline" style="max-height:200px;overflow-y:auto;font-size:12px;color:#aaa;">
+                    <p style="color:#555;">开始学习后自动记录画像变化...</p>
+                </div>
+            </div>
+
+            <!-- AI 功能介绍 -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-magic"></i> AI 智能教学辅助功能</div>
+                <div class="ai-grid">
+                    <div class="ai-feat-card"><h4><i class="fas fa-comments" style="color:#7c83f5"></i> AI 智能答疑</h4><p>不懂就问，AI 实时解答学习疑问，24小时在线辅导</p></div>
+                    <div class="ai-feat-card"><h4><i class="fas fa-check-circle" style="color:#2ecc71"></i> AI 作业批改</h4><p>自动批改练习题，秒出结果+错题解析，提升学习效率</p></div>
+                    <div class="ai-feat-card"><h4><i class="fas fa-book" style="color:#f39c12"></i> AI 知识点总结</h4><p>自动提炼课程重点内容，生成学习笔记，快速复习</p></div>
+                    <div class="ai-feat-card"><h4><i class="fas fa-chart-line" style="color:#e74c3c"></i> AI 学习分析</h4><p>智能分析学习情况，生成个性化学习报告与建议</p></div>
+                </div>
+            </div>
+
+            <!-- 测验 -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-edit"></i> AI 智能随堂测验</div>
+                <div class="quiz-inner" id="quizContent">
+                    <p>点击下方按钮，AI 将根据当前课程内容为你生成专属练习题。</p>
+                    <button class="btn" id="generateQuizBtn" onclick="generateQuizWithAI()" style="margin-top:12px;">
+                        <i class="fas fa-magic"></i> 生成 AI 练习题
+                    </button>
+                </div>
+                <div id="quizResult" style="margin-top:12px;padding:14px;border-radius:8px;display:none;background:#12141f;border-left:4px solid #4e54c8;font-size:13px;color:#ccc;"></div>
+            </div>
+        </div>
+
+        <!-- 右侧 -->
+        <div>
+            <div class="card">
+                <div class="card-title"><i class="fas fa-list"></i> 课程目录</div>
+                <ul class="course-list">
+                    <li class="active"><i class="fas fa-play-circle"></i> 第1课：机器学习定义与三大范式</li>
+                    <li><i class="fas fa-lock"></i> 第2课：数据集划分与采样</li>
+                    <li><i class="fas fa-lock"></i> 第3课：损失函数与目标函数</li>
+                    <li><i class="fas fa-lock"></i> 第4课：过拟合与欠拟合</li>
+                    <li><i class="fas fa-lock"></i> 第5课：偏差与方差权衡</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fas fa-satellite-dish"></i> 实时行为数据</div>
+
+                <!-- 原始行为指标 -->
+                <div class="stats-row">
+                    <div class="stat-box"><div class="stat-val" id="statTime">0.0</div><div class="stat-label">观看时长 (分钟)</div></div>
+                    <div class="stat-box"><div class="stat-val" id="statSpeak">0</div><div class="stat-label">提问次数</div></div>
+                </div>
+
+                <!-- 三维融合指标 -->
+                <div style="font-size:11px;color:#555;margin:10px 0 6px;"><i class="fas fa-layer-group"></i> 特征融合指标</div>
+                <div class="stats-row">
+                    <div class="stat-box"><div class="stat-val" id="statEngagement" style="color:#2ecc71;">0</div><div class="stat-label">学习投入度</div></div>
+                    <div class="stat-box"><div class="stat-val" id="statPressure" style="color:#e74c3c;">0</div><div class="stat-label">理解压力</div></div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box"><div class="stat-val" id="statContinuity" style="color:#f39c12;">0</div><div class="stat-label">学习连续性</div></div>
+                    <div class="stat-box"><div class="stat-val" id="statEffective">0%</div><div class="stat-label">有效观看比例</div></div>
+                </div>
+
+                <div style="font-size:11px;color:#444;margin-bottom:8px;"><i class="fas fa-sliders-h"></i> 手动调试（演示用）</div>
+                <div class="input-row"><label>时长:</label><input id="inputTime" type="number" value="0" min="0" step="0.5"></div>
+                <div class="input-row"><label>提问:</label><input id="inputSpeak" type="number" value="0" min="0"></div>
+                <button class="btn btn-full" onclick="runMLModel()" style="margin-top:4px;">
+                    <i class="fas fa-play"></i> 运行 K-means 模型
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fas fa-robot"></i> AI 学习助手</div>
+                <div class="chat-box" id="chatBox">
+                    <div style="color:#7c83f5;margin-bottom:8px;"><strong>AI：</strong>你好！有什么学习问题可以问我~</div>
+                </div>
+                <div class="chat-input-row">
+                    <input id="userInput" type="text" placeholder="输入问题，按回车发送...">
+                    <button class="btn btn-sm" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <p>© 2026 AI智能机器学习课程教学平台 · 参赛作品（张展硕 · 王彦衡 · 王云涛）</p>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
